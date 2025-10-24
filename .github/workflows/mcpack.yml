@@ -1,0 +1,179 @@
+name: Build and Save MCPACK
+
+on:
+  workflow_dispatch:
+    inputs:
+      pack_type:
+        description: 'Pack type to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - behavior
+        - resource
+
+permissions:
+  packages: write
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install gitfiles==1.0.0 mcaddon==0.0.3 commentjson==0.9.0
+
+      - name: Debug - List files
+        run: |
+          echo "=== Repository structure ==="
+          find . -type f -name "*.txt" -o -name "*.json" -o -name "*.py" | head -20
+          echo ""
+          echo "=== Current working directory ==="
+          pwd
+          echo ""
+          echo "=== src/ contents ==="
+          ls -la src/ || echo "src/ not found"
+          echo ""
+          echo "=== src/behavior_pack/ contents ==="
+          ls -la src/behavior_pack/ || echo "src/behavior_pack/ not found"
+
+      - name: Install additional dependencies
+        run: |
+          pip install requests
+
+      - name: Bundle and create MCPACK
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PACK_TYPE: ${{ github.event.inputs.pack_type }}
+        run: |
+          python .github/scripts/build_mcpack.py --buildScript build.py --input src/ --output dist/ --outputPattern "NAME vVERSION.mcpack" --pack-type "$PACK_TYPE"
+
+      - name: List built files
+        run: |
+          echo "=== Built files ==="
+          ls -la dist/libs/ || echo "No files in dist/libs/"
+          echo ""
+          echo "=== Builds directory ==="
+          ls -la builds/ || echo "No builds/ directory found"
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create and push to builds branch
+        run: |
+          if [ ! -d "builds" ] || [ -z "$(ls -A builds 2>/dev/null)" ]; then
+            echo "No builds directory found or it's empty"
+            exit 1
+          fi
+          
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          mkdir -p /tmp/build_files
+          cp builds/* /tmp/build_files/ 2>/dev/null || { echo "Failed to copy build files"; exit 1; }
+          
+          echo "Files to be deployed:"
+          ls -la /tmp/build_files/
+          
+          git add . || true
+          git stash push -m "Temporary stash before builds branch switch" || true
+          rm -rf builds
+          
+          if git ls-remote --heads origin builds | grep -q "refs/heads/builds"; then
+            echo "Builds branch exists remotely, checking it out..."
+            git fetch origin builds:builds
+            git checkout -B builds origin/builds
+          else
+            echo "Creating new orphan builds branch..."
+            git checkout --orphan builds
+            git rm -rf . || true
+            
+            cat > README.md << 'EOF'
+          # Minecraft Pack Builds
+          
+          This branch contains automatically generated Minecraft pack builds.
+          
+          EOF
+            
+            git add README.md
+            git commit -m "Initialize builds branch"
+          fi
+          
+          if [ "$(git branch --show-current)" != "builds" ]; then
+            echo "ERROR: Not on builds branch!"
+            git branch --show-current
+            exit 1
+          fi
+          
+          cp /tmp/build_files/* . 2>/dev/null || { echo "Failed to copy files to builds branch"; exit 1; }
+          
+          cat > README.md << 'EOF'
+          # Minecraft Pack Builds
+          
+          This branch contains automatically generated Minecraft pack builds.
+          
+          EOF
+          
+          echo "- **Last updated:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> README.md
+          echo "- **Auto-generated from:** $CURRENT_BRANCH branch" >> README.md
+          echo "" >> README.md
+          echo "## Available Files" >> README.md
+          echo "" >> README.md
+          
+          file_count=0
+          for file in *.mcpack *.mcaddon; do
+            if [ -f "$file" ]; then
+              size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "unknown")
+              echo "- [$file](./$file) (${size} bytes)" >> README.md
+              file_count=$((file_count + 1))
+            fi
+          done
+          
+          if [ $file_count -eq 0 ]; then
+            echo "- No build files found." >> README.md
+          fi
+          
+          echo "" >> README.md
+          echo "---" >> README.md
+          echo "*This branch is automatically updated by GitHub Actions.*" >> README.md
+          
+          echo "Files in builds branch:"
+          ls -la
+          
+          git add .
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update builds - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git push origin builds
+            echo "✅ Successfully pushed builds to 'builds' branch"
+          fi
+          
+          git checkout $CURRENT_BRANCH
+
+      - name: Upload build artifacts (backup)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: minecraft-packs
+          path: |
+            builds/
+            dist/libs/
+          retention-days: 30

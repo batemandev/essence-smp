@@ -1,0 +1,17 @@
+{
+	"format_version": "1.20.50",
+	"minecraft:item": {
+		"description": {
+			"identifier": "metro:revenge_essence",
+			"menu_category": {
+				"category": "items",
+				"group": "itemGroup.name.enchantedBook"
+			}
+		},
+		"components": {
+			"minecraft:max_stack_size": 1,
+			"minecraft:icon": "revenge_essence",
+			"minecraft:glint": true
+		}
+	}
+}
