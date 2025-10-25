@@ -1,19 +1,22 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Essence SMP",
+    "name": "Essence SMP [BP]",
     "description": "Owned and operated by Metrovics.",
     "uuid": "72445b5d-b589-443b-bd26-7bebaecc4632",
     "version": [
       1,
       0,
-      0
+      3
     ],
     "min_engine_version": [
       1,
       21,
       0
     ]
+  },
+  "metadata": {
+    "abbr": "BP"
   },
   "modules": [
     {

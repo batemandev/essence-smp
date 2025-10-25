@@ -6,8 +6,11 @@ const COOLDOWN_TIME = 2400;
 const leftClickCooldowns = new Map();
 const LEFT_CLICK_COOLDOWN = 3600;
 const prisonedPlayers = new Map();
+const prisonIntervals = new Map();
 const sneakCooldowns = new Map();
 const SNEAK_COOLDOWN = 4200;
+const enragedIntervals = new Map();
+const judgmentIntervals = new Map();
 
 function getCooldownStatus(player) {
     const currentTick = system.currentTick;
@@ -113,7 +116,10 @@ function enraged(player) {
     system.runTimeout(() => {
         system.clearRun(particleInterval);
         system.clearRun(effectInterval);
+        enragedIntervals.delete(player.id);
     }, 600);
+
+    enragedIntervals.set(player.id, { particleInterval, effectInterval });
 }
 
 function almightySpeech(attacker, victim) {
@@ -204,7 +210,10 @@ function almightySpeech(attacker, victim) {
     system.runTimeout(() => {
         prisonedPlayers.delete(victim.id);
         system.clearRun(prisonInterval);
+        prisonIntervals.delete(victim.id);
     }, 400);
+
+    prisonIntervals.set(victim.id, prisonInterval);
 }
 
 const activeJudgments = new Map();
@@ -294,7 +303,10 @@ function divineJudgment(player) {
     system.runTimeout(() => {
         system.clearRun(particleInterval);
         activeJudgments.delete(player.id);
+        judgmentIntervals.delete(player.id);
     }, 1200);
+
+    judgmentIntervals.set(player.id, particleInterval);
 }
 
 function onJudgmentKill(killer) {
@@ -356,6 +368,10 @@ function hasRevengeEssence(player) {
 }
 
 function checkLowHealth(player) {
+    if (!hasRevengeEssence(player)) {
+        return;
+    }
+
     const currentTick = system.currentTick;
     const lastUse = lowHealthCooldowns.get(player.id);
 
@@ -377,6 +393,40 @@ function checkLowHealth(player) {
     }
 }
 
+function cleanupPlayerAbilities(player) {
+    const enragedData = enragedIntervals.get(player.id);
+    if (enragedData) {
+        system.clearRun(enragedData.particleInterval);
+        system.clearRun(enragedData.effectInterval);
+        enragedIntervals.delete(player.id);
+    }
+
+    const prisonInterval = prisonIntervals.get(player.id);
+    if (prisonInterval) {
+        system.clearRun(prisonInterval);
+        prisonIntervals.delete(player.id);
+        prisonedPlayers.delete(player.id);
+    }
+
+    const judgmentInterval = judgmentIntervals.get(player.id);
+    if (judgmentInterval) {
+        system.clearRun(judgmentInterval);
+        judgmentIntervals.delete(player.id);
+        activeJudgments.delete(player.id);
+    }
+
+    prisonedPlayers.forEach((data, victimId) => {
+        if (victimId === player.id) {
+            const interval = prisonIntervals.get(victimId);
+            if (interval) {
+                system.clearRun(interval);
+                prisonIntervals.delete(victimId);
+            }
+            prisonedPlayers.delete(victimId);
+        }
+    });
+}
+
 export {
-    addTrustedPlayer, almightySpeech, checkLowHealth, divineJudgment, enraged, getCooldownStatus, onJudgmentKill, getTrustedPlayers, hasRevengeEssence, removeTrustedPlayer
+    addTrustedPlayer, almightySpeech, checkLowHealth, cleanupPlayerAbilities, divineJudgment, enraged, getCooldownStatus, onJudgmentKill, getTrustedPlayers, hasRevengeEssence, removeTrustedPlayer
 };

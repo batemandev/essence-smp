@@ -1,6 +1,6 @@
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, Player, system, world } from "@minecraft/server";
 import { GLOBALCONFIG } from "./config";
-import { addTrustedPlayer, almightySpeech, checkLowHealth, divineJudgment, enraged, getCooldownStatus, getTrustedPlayers, hasRevengeEssence, onJudgmentKill, removeTrustedPlayer } from "./essences";
+import { addTrustedPlayer, almightySpeech, checkLowHealth, cleanupPlayerAbilities, divineJudgment, enraged, getCooldownStatus, getTrustedPlayers, hasRevengeEssence, onJudgmentKill, removeTrustedPlayer } from "./essences";
 
 system.runInterval(() => {
     const players = world.getAllPlayers();
@@ -78,6 +78,10 @@ world.afterEvents.entityDie.subscribe(event => {
 
     if (killer instanceof Player && victim instanceof Player) {
         onJudgmentKill(killer);
+    }
+
+    if (victim instanceof Player) {
+        cleanupPlayerAbilities(victim);
     }
 });
 
