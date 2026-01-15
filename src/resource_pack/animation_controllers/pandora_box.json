@@ -1,0 +1,37 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.pandora_box": {
+      "states": {
+        "default": {
+          "animations": [
+            "default",
+            {"idle": "query.property('metro:idle_animation')"}
+          ],
+          "transitions": [
+            {"open": "(query.mark_variant == 1)"},
+            {"cancel_animation": "!q.is_alive"}
+          ]
+        },
+        "open": {
+          "animations": ["open","default"],
+          "transitions": [
+            {"close": "(query.mark_variant == 3)"},
+            {"cancel_animation": "!q.is_alive"}
+          ]
+        },
+        "close": {
+          "animations": ["close","default"],
+          "transitions": [
+            {"default": "(query.mark_variant == 0)"},
+            {"open": "(query.mark_variant == 1)"},
+            {"cancel_animation": "!q.is_alive"}
+          ]
+        },
+        "cancel_animation": {
+          "animations": ["default"]
+        }
+      }
+    }
+  }
+}

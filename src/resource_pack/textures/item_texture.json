@@ -1,7 +1,25 @@
 {
 	"texture_data": {
+		"agility_essence": {
+			"textures": "textures/items/essences/agility"
+		},
+		"earth_essence": {
+			"textures": "textures/items/essences/earth"
+		},
+		"healer_essence": {
+			"textures": "textures/items/essences/healer"
+		},
 		"revenge_essence": {
-			"textures": "textures/items/revenge_essence.png"
+			"textures": "textures/items/essences/revenge"
+		},
+		"strength_essence": {
+			"textures": "textures/items/essences/strength"
+		},
+		"treasure_essence": {
+			"textures": "textures/items/essences/treasure"
+		},
+		"wither_essence": {
+			"textures": "textures/items/essences/wither"
 		}
 	}
 }

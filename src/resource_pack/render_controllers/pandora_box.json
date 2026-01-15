@@ -1,0 +1,17 @@
+{
+  "format_version": "1.10.0",
+  "render_controllers": {
+    "controller.render.pandora_box": {
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "part_visibility": [{ "*": true }],
+      "geometry": "Geometry.default",
+      "textures": ["Texture.default"],
+      "is_hurt_color": {},
+      "on_fire_color": {}
+    }
+  }
+}

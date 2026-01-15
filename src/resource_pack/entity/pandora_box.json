@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.20",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "metro:pandora_box",
+      "materials": {
+        "default": "entity_alphatest_change_color"
+      },
+      "textures": {
+        "default": "textures/pandora_box"
+      },
+      "geometry": {
+        "default": "geometry.pandora_box"
+      },
+      "render_controllers": [
+        "controller.render.pandora_box"
+      ],
+      "animations": {
+        "controller": "controller.animation.pandora_box",
+        "default": "animation.pandora_box.normal",
+        "close": "animation.pandora_box.close",
+        "idle": "animation.pandora_box.idle",
+        "open": "animation.pandora_box.open"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      }
+    }
+  }
+}
