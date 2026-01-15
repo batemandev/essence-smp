@@ -1,0 +1,120 @@
+{
+    "format_version": "1.20.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "metro:pandora_box",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": true,
+            "animations": {
+                "despawn": "controller.animation.remove"
+            },
+            "scripts": {
+                "animate": [
+                    "despawn"
+                ]
+            },
+            "properties": {
+                "metro:idle_animation": {
+                    "type": "bool",
+                    "default": false,
+                    "client_sync": true
+                }
+            }
+        },
+        "component_groups": {},
+        "components": {
+            "minecraft:interact": {
+                "interactions": [
+                    {
+                        "on_interact": {
+                            "filters": {
+                                "all_of": [
+                                    {
+                                        "test": "is_family",
+                                        "subject": "other",
+                                        "value": "player"
+                                    }
+                                ]
+                            }
+                        },
+                        "interact_text": "Reroll"
+                    }
+                ]
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "reroll_box"
+                ]
+            },
+            "minecraft:tick_world": {
+                "never_despawn": true
+            },
+            "minecraft:inventory": {
+                "inventory_size": 255,
+                "private": false,
+                "restrict_to_owner": false
+            },
+            "minecraft:variant": {
+                "value": 0
+            },
+            "minecraft:mark_variant": {
+                "value": 0
+            },
+            "minecraft:skin_id": {
+                "value": 0
+            },
+            "minecraft:scale": {
+                "value": 1
+            },
+            "minecraft:nameable": {
+                "always_show": true,
+                "allow_name_tag_renaming": false
+            },
+            "minecraft:fire_immune": {},
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "deals_damage": false,
+                        "cause": "all"
+                    }
+                ]
+            },
+            "minecraft:collision_box": {
+                "width": 0,
+                "height": 1.6
+            },
+            "minecraft:custom_hit_test": {
+                "hitboxes": [
+                    {
+                        "pivot": [
+                            0,
+                            0.8,
+                            0
+                        ],
+                        "width": 1.2,
+                        "height": 1.6
+                    }
+                ]
+            },
+            "minecraft:movement": {
+                "value": 0
+            },
+            "minecraft:friction_modifier": {
+                "value": 1000
+            },
+            "minecraft:pushable": {
+                "is_pushable": false,
+                "is_pushable_by_piston": false
+            },
+            "minecraft:physics": {
+                "has_collision": false,
+                "has_gravity": false
+            },
+            "minecraft:knockback_resistance": {
+                "value": 10.0
+            }
+        },
+        "events": {}
+    }
+}
