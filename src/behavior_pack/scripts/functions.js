@@ -1,3 +1,5 @@
+import { Player } from "@minecraft/server";
+
 /**
  * Adds a player to the trusted players list
  * @param {Player} player - The player whose trust list is being modified

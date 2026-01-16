@@ -123,7 +123,7 @@ system.runInterval(() => {
 
 /**
  * 
- * @param {*} player - the player being cleansed of abilities. 
+ * @param {Player} player - the player being cleansed of abilities. 
  */
 function cleanupActiveEssenceAbilities(player) {
     cleanupAgilityEssenceAbilities(player);
@@ -284,7 +284,7 @@ world.beforeEvents.itemUse.subscribe(event => {
         if (item.typeId === "minecraft:golden_apple") {
             if (!canConsumeGoldenApple(player) || !canConsumeGoldenAppleAgility(player)) {
                 event.cancel = true;
-                player.sendMessage(" §cYou are affected by an essence and cannot consume Golden Apples!");
+                player.sendMessage(" §cYou are affected by an essence and cannot consume Golden Apples!");
                 return;
             }
         }

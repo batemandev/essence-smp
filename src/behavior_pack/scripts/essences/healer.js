@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { Player, system } from "@minecraft/server";
 import { getTrustedPlayers } from "../functions";
 
 const HEALER_ESSENCE_CONFIG = {
@@ -15,11 +15,11 @@ const HEALER_ESSENCE_CONFIG = {
         TOUCH_OF_GRACE_READY: " §aTouch of Grace is ready!"
     },
     SOUNDS: {
-        CIRCLE_OF_VITALITY_ACTIVATED: "random.levelup",
+        CIRCLE_OF_VITALITY_ACTIVATED: "beacon.power",
         CIRCLE_OF_VITALITY_READY: "random.orb",
         PURGE_WARD_ACTIVATED: "mob.elder_guardian.curse",
         PURGE_WARD_READY: "random.orb",
-        TOUCH_OF_GRACE_ACTIVATED: "random.orb",
+        TOUCH_OF_GRACE_ACTIVATED: "beacon.power",
         TOUCH_OF_GRACE_READY: "random.orb"
     },
     CIRCLE_OF_VITALITY: {
@@ -54,7 +54,7 @@ const circleIntervals = new Map();
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  * @returns boolean;
  */
 function hasHealerEssence(player) {
@@ -73,7 +73,7 @@ function hasHealerEssence(player) {
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  * @returns 
  */
 function getHealerCooldownStatus(player) {
@@ -115,7 +115,7 @@ function getHealerCooldownStatus(player) {
  * are granted Regeneration III for fifteen (15) seconds. This ability is 
  * triggered by using the Healer Essence item (right click) and has a cooldown
  * of two (2) minutes and thirty (30) seconds.
- * @param {*} player - the player casting the ability. 
+ * @param {Player} player - the player casting the ability. 
  */
 function circleOfVitality(player) {
     system.run(() => {
@@ -133,9 +133,10 @@ function circleOfVitality(player) {
         const fixedPos = { x: playerPos.x, y: playerPos.y, z: playerPos.z };
 
         player.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.CIRCLE_OF_VITALITY_ACTIVATED);
-        player.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.CIRCLE_OF_VITALITY_ACTIVATED);
+        player.dimension.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.CIRCLE_OF_VITALITY_ACTIVATED, player.location);
 
         const trusted = getTrustedPlayers(player);
+        const notifiedPlayers = new Set();
 
         const healInterval = system.runInterval(() => {
             const nearbyPlayers = player.dimension.getPlayers({
@@ -150,8 +151,9 @@ function circleOfVitality(player) {
                         showParticles: true
                     });
 
-                    if (p.id !== player.id) {
+                    if (p.id !== player.id && !notifiedPlayers.has(p.id)) {
                         p.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.CIRCLE_OF_VITALITY_RECEIVED.replace("{player}", player.name));
+                        notifiedPlayers.add(p.id);
                     }
                 }
             });
@@ -181,7 +183,7 @@ function circleOfVitality(player) {
         system.runTimeout(() => {
             if (player.isValid) {
                 player.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.CIRCLE_OF_VITALITY_READY);
-                player.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.CIRCLE_OF_VITALITY_READY);
+                player.dimension.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.CIRCLE_OF_VITALITY_READY, player.location);
             }
         }, HEALER_ESSENCE_CONFIG.CIRCLE_OF_VITALITY.COOLDOWN);
 
@@ -195,7 +197,7 @@ function circleOfVitality(player) {
  * three (3) block radius are prevented from consuming Golden Apples for
  * four (4) seconds. This ability is triggered by using the Healer Essence
  * item (right click) while sneaking and has a cooldown of three (3) minutes.
- * @param {*} player - the player casting the ability. 
+ * @param {Player} player - the player casting the ability. 
  */
 function purgeWard(player) {
     system.run(() => {
@@ -214,7 +216,7 @@ function purgeWard(player) {
         const radius = HEALER_ESSENCE_CONFIG.PURGE_WARD.RADIUS;
 
         player.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.PURGE_WARD_ACTIVATED);
-        player.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.PURGE_WARD_ACTIVATED);
+        player.dimension.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.PURGE_WARD_ACTIVATED, player.location);
 
         const nearbyPlayers = player.dimension.getPlayers({
             location: playerPos,
@@ -243,7 +245,7 @@ function purgeWard(player) {
         system.runTimeout(() => {
             if (player.isValid) {
                 player.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.PURGE_WARD_READY);
-                player.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.PURGE_WARD_READY);
+                player.dimension.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.PURGE_WARD_READY, player.location);
             }
         }, HEALER_ESSENCE_CONFIG.PURGE_WARD.COOLDOWN);
 
@@ -257,8 +259,8 @@ function purgeWard(player) {
  * are inflicted with Weakness I and Slowness I. This ability is triggered by
  * hitting a player while holding the Healer Essence item and has a cooldown
  * of three (3) minutes and thirty (30) seconds.
- * @param {*} attacker - the player casting the ability. 
- * @param {*} target - the target player.
+ * @param {Player} attacker - the player casting the ability. 
+ * @param {Player} target - the target player.
  * @returns 
  */
 function touchOfGrace(attacker, target) {
@@ -326,7 +328,7 @@ function touchOfGrace(attacker, target) {
     }
 
     attacker.sendMessage(HEALER_ESSENCE_CONFIG.MESSAGES.TOUCH_OF_GRACE_ACTIVATED.replace("{target}", target.name));
-    attacker.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.TOUCH_OF_GRACE_ACTIVATED);
+    attacker.dimension.playSound(HEALER_ESSENCE_CONFIG.SOUNDS.TOUCH_OF_GRACE_ACTIVATED, attacker.location);
 
     system.runTimeout(() => {
         if (attacker.isValid) {
@@ -340,7 +342,7 @@ function touchOfGrace(attacker, target) {
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  * @returns 
  */
 function canConsumeGoldenApple(player) {
@@ -356,7 +358,7 @@ function canConsumeGoldenApple(player) {
 
 /**
  * 
- * @param {*} player - the player object. 
+ * @param {Player} player - the player object. 
  */
 function onGoldenAppleConsume(player) {
     if (hasHealerEssence(player)) {
@@ -371,7 +373,7 @@ function onGoldenAppleConsume(player) {
 
 /**
  * 
- * @param {*} player - the player object. 
+ * @param {Player} player - the player object. 
  */
 function cleanupHealerEssenceAbilities(player) {
     const intervals = circleIntervals.get(player.id);

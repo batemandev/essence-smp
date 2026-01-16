@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { Player, system } from "@minecraft/server";
 import { getTrustedPlayers } from "../functions";
 
 const REVENGE_ESSENCE_CONFIG = {
@@ -43,7 +43,7 @@ const LOW_HEALTH_THRESHOLD = 6;
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  * @returns 
  */
 function getRevengeCooldownStatus(player) {
@@ -86,7 +86,7 @@ function getRevengeCooldownStatus(player) {
  * back to the center each time they try to escape. This ability is triggered 
  * by punching a player while holding the Revenge Essence item and it has three 
  * (3) minutes cooldown.
- * @param {*} player - the player casting the ability. 
+ * @param {Player} player - the player casting the ability. 
  */
 function enraged(player) {
     const currentTick = system.currentTick;
@@ -171,7 +171,7 @@ function enraged(player) {
  * and the effect is granted as long as the players are within the red particles
  * that are spiraling around the player. This abiliity is triggered by using
  * the item (right click) and has two (2) minutes cooldown.
- * @param {*} attacker - the player casting the ability. 
+ * @param {Player} attacker - the player casting the ability. 
  * @param {*} victim - the target player
  */
 function almightySpeech(attacker, victim) {
@@ -274,7 +274,7 @@ function almightySpeech(attacker, victim) {
  * granted Strength I. For each kill, the user's Strength effect increases. 
  * This ability is triggered by using the Revenge Essence item (right click) while 
  * sneaking and has a cooldown of three (3) minutes thirty (30) seconds.
- * @param {*} player - the player casting the ability.
+ * @param {Player} player - the player casting the ability.
  */
 function divineJudgment(player) {
     const currentTick = system.currentTick;
@@ -387,7 +387,7 @@ function onJudgmentKill(killer) {
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  */
 function hasRevengeEssence(player) {
     const inventory = player.getComponent("inventory");
@@ -405,7 +405,7 @@ function hasRevengeEssence(player) {
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  */
 function checkLowHealth(player) {
     if (!hasRevengeEssence(player)) {
@@ -435,7 +435,7 @@ function checkLowHealth(player) {
 
 /**
  * 
- * @param {*} player - the player object. 
+ * @param {Player} player - the player object. 
  */
 function cleanupPlayerRevengeAbilities(player) {
     const enragedData = enragedIntervals.get(player.id);

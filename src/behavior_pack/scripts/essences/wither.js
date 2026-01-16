@@ -48,7 +48,7 @@ const witherStrikeCooldowns = new Map();
 
 /**
  * 
- * @param {*} player - the player being checked. 
+ * @param {Player} player - the player being checked. 
  */
 function hasWitherEssence(player) {
     const inventory = player.getComponent("inventory");
@@ -356,7 +356,7 @@ function witherStrike(attacker, target) {
 
 /**
  * 
- * @param {*} player - the player object. 
+ * @param {Player} player - the player object. 
  */
 function cleanupWitherEssenceAbilities(player) {
     const interval = corruptionIntervals.get(player.id);
