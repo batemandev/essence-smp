@@ -1,4 +1,4 @@
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, Player, system, world } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack, Player, system, world } from "@minecraft/server";
 import { GLOBALCONFIG } from "./config";
 import { canConsumeGoldenAppleAgility, canTriggerCripplingBlow, checkGroundImpactLanding, cleanupAgilityEssenceAbilities, cripplingBlow, getAgilityCooldownStatus, getCurrentSpeedLevel, groundImpact, hasAgilityEssence, lightningRush, resetDistanceTracking, updateDistanceTracking } from "./essences/agility";
 import { canTriggerRockSolid, cleanupEarthEssenceAbilities, getEarthCooldownStatus, hasEarthEssence, rockSolid, stoneClamp, tremble } from "./essences/earth";
@@ -7,7 +7,7 @@ import { almightySpeech, checkLowHealth, cleanupPlayerRevengeAbilities, divineJu
 import { applyComboOnHit, canTriggerCrushingBlow, crushingBlow, getStrengthCooldownStatus, hasStrengthEssence, rallyOfPower, titanicSlam } from "./essences/strength";
 import { cleanupTreasureEssenceAbilities, curseOfAvarice, fortunesReckoning, getTreasureCooldownStatus, gildedSanctuary, handleEmeraldMining, hasTreasureEssence, startRandomEffectTimer, stopRandomEffectTimer } from "./essences/treasure";
 import { applyWitherOnHit, cleanupWitherEssenceAbilities, corruptionCloud, fireWitherSkullBarrage, getWitherCooldownStatus, hasWitherEssence, witherStrike } from "./essences/wither";
-import { addTrustedPlayer, removeTrustedPlayer, getTrustedPlayers } from "./functions";
+import { addTrustedPlayer, getTrustedPlayers, removeTrustedPlayer } from "./functions";
 import "./rerollBox";
 
 const actionBarIntervals = new Map();
@@ -149,6 +149,34 @@ world.afterEvents.playerSpawn.subscribe(event => {
 
     if (initialSpawn) {
         player.sendMessage(GLOBALCONFIG.MESSAGES.WHEN_A_PLAYER_JOINS_THE_SERVER.replace("{player}", player.name));
+
+        const firstEssence = player.getDynamicProperty("firstEssenceReceived");
+
+        if (!firstEssence) {
+            const essences = [
+                "metro:agility_essence",
+                "metro:earth_essence",
+                "metro:healer_essence",
+                "metro:revenge_essence",
+                "metro:strength_essence",
+                "metro:treasure_essence"
+            ];
+
+            const randomEssence = essences[Math.floor(Math.random() * essences.length)];
+
+            system.run(() => {
+                const container = player.getComponent("inventory").container;
+                const essenceItem = new ItemStack(randomEssence, 1);
+
+                essenceItem.keepOnDeath = true;
+                essenceItem.lockMode = "inventory";
+
+                container.addItem(essenceItem);
+
+                player.setDynamicProperty("firstEssenceReceived", randomEssence);
+                player.sendMessage(GLOBALCONFIG.MESSAGES.WHEN_A_PLAYER_ACQUIRES_THEIR_FIRST_RANDOM_ESSENCE_ITEM);
+            });
+        }
     }
 });
 
@@ -162,13 +190,29 @@ world.afterEvents.playerButtonInput.subscribe(event => {
 
 world.afterEvents.playerInventoryItemChange.subscribe(event => {
     const player = event.player;
+    const container = player.getComponent("inventory").container;
     const newItem = event.itemStack;
 
-    if (player instanceof Player && newItem && newItem.typeId === "metro:wither_essence") {
-        world.sendMessage(GLOBALCONFIG.MESSAGES.WHEN_A_PLAYER_ACQUIRES_THE_WITHER_ESSENCE.replace("{player}", player.name));
-        world.getAllPlayers().forEach(p => {
-            p.playSound(GLOBALCONFIG.SOUNDS.WHEN_A_PLAYER_ACQUIRES_THE_WITHER_ESSENCE);
-        });
+    if (player instanceof Player && newItem) {
+        if (newItem.typeId.includes("essence")) {
+            system.run(() => {
+                for (let i = 0; i < container.size; i++) {
+                    const item = container.getItem(i);
+                    if (item && item.typeId.includes("essence")) {
+                        item.keepOnDeath = true;
+                        item.lockMode = "inventory";
+                        container.setItem(i, item);
+                    }
+                }
+            });
+        }
+
+        if (newItem.typeId === "metro:wither_essence") {
+            world.sendMessage(GLOBALCONFIG.MESSAGES.WHEN_A_PLAYER_ACQUIRES_THE_WITHER_ESSENCE.replace("{player}", player.name));
+            world.getAllPlayers().forEach(p => {
+                p.playSound(GLOBALCONFIG.SOUNDS.WHEN_A_PLAYER_ACQUIRES_THE_WITHER_ESSENCE);
+            });
+        }
     }
 });
 
