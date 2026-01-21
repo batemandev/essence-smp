@@ -4,7 +4,7 @@ import { canConsumeGoldenAppleAgility, canTriggerCripplingBlow, checkGroundImpac
 import { canTriggerRockSolid, cleanupEarthEssenceAbilities, getEarthCooldownStatus, hasEarthEssence, rockSolid, stoneClamp, tremble } from "./essences/earth";
 import { canConsumeGoldenApple, circleOfVitality, cleanupHealerEssenceAbilities, getHealerCooldownStatus, hasHealerEssence, onGoldenAppleConsume, purgeWard, touchOfGrace } from "./essences/healer";
 import { almightySpeech, checkLowHealth, cleanupPlayerRevengeAbilities, divineJudgment, enraged, getRevengeCooldownStatus, hasRevengeEssence, onJudgmentKill } from "./essences/revenge";
-import { applyComboOnHit, canTriggerCrushingBlow, crushingBlow, getStrengthCooldownStatus, hasStrengthEssence, rallyOfPower, titanicSlam } from "./essences/strength";
+import { applyComboOnHit, canTriggerCrushingBlow, crushingBlow, getStrengthCooldownStatus, hasStrengthEssence, rallyOfPower, resetCombo, titanicSlam } from "./essences/strength";
 import { cleanupTreasureEssenceAbilities, curseOfAvarice, fortunesReckoning, getTreasureCooldownStatus, gildedSanctuary, handleEmeraldMining, hasTreasureEssence, startRandomEffectTimer, stopRandomEffectTimer } from "./essences/treasure";
 import { applyWitherOnHit, cleanupWitherEssenceAbilities, corruptionCloud, fireWitherSkullBarrage, getWitherCooldownStatus, hasWitherEssence, witherStrike } from "./essences/wither";
 import { addTrustedPlayer, getTrustedPlayers, removeTrustedPlayer } from "./functions";
@@ -43,11 +43,11 @@ system.runInterval(() => {
         }
 
         /*
-        Healer Essence Passive 1 : The player is permanently granted Health Boost II and Regeneration I as long as the Healer Essence item remains in their inventory.
+        Healer Essence Passive 1 : The player is permanently granted Health Boost III and Regeneration I as long as the Healer Essence item remains in their inventory.
         */
         if (hasHealerEssence(player)) {
             player.addEffect("health_boost", 41, {
-                amplifier: 1,
+                amplifier: 2,
                 showParticles: true
             });
             player.addEffect("regeneration", 41, {
@@ -414,6 +414,10 @@ world.afterEvents.entityHurt.subscribe(event => {
             resetDistanceTracking(victim);
         }
 
+        if (hasStrengthEssence(victim)) {
+            resetCombo(victim);
+        }
+
         if (attacker instanceof Player) {
             const heldItem = attacker.getComponent("inventory").container.getItem(attacker.selectedSlotIndex);
 
@@ -584,3 +588,6 @@ function trustCommand(origin, operation, playerArray) {
         }
     });
 }
+
+export { cleanupActiveEssenceAbilities };
+

@@ -40,8 +40,8 @@ const STRENGTH_ESSENCE_CONFIG = {
     },
     TITANIC_SLAM: {
         COOLDOWN: 1800,
-        RADIUS: 3,
-        DAMAGE: 8,
+        RADIUS: 8,
+        DAMAGE: 9,
         STRENGTH_DURATION: 1200,
         STRENGTH_AMPLIFIER: 1,
         SPEED_DURATION: 1200,
@@ -149,6 +149,16 @@ function applyComboOnHit(attacker) {
     } else {
         comboHits.set(playerId, hitCount);
         attacker.onScreenDisplay.setActionBar(`§6 Strength Combo: ${hitCount}/${STRENGTH_ESSENCE_CONFIG.COMBO.REQUIRED_HITS}`);
+    }
+}
+
+function resetCombo(player) {
+    const playerId = player.id;
+    const hitCount = comboHits.get(playerId) || 0;
+
+    if (hitCount > 0) {
+        comboHits.set(playerId, 0);
+        player.onScreenDisplay.setActionBar(`§6 Strength Combo: 0/${STRENGTH_ESSENCE_CONFIG.COMBO.REQUIRED_HITS}`);
     }
 }
 
@@ -410,5 +420,5 @@ function crushingBlow(attacker, target) {
     });
 }
 
-export { applyComboOnHit, canTriggerCrushingBlow, crushingBlow, getStrengthCooldownStatus, hasStrengthEssence, rallyOfPower, titanicSlam };
+export { applyComboOnHit, canTriggerCrushingBlow, crushingBlow, getStrengthCooldownStatus, hasStrengthEssence, rallyOfPower, resetCombo, titanicSlam };
 

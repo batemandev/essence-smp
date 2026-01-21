@@ -143,7 +143,7 @@ function enraged(player) {
     let angle = 0;
     const particleInterval = system.runInterval(() => {
         const currentPos = player.location;
-        for (let i = 0; i < 32; i++) {
+        for (let i = 0; i < 16; i++) {
             const particleAngle = angle + (i * Math.PI * 2 / 32);
             const x = currentPos.x + radius * Math.cos(particleAngle);
             const z = currentPos.z + radius * Math.sin(particleAngle);

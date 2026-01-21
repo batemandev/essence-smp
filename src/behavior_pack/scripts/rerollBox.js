@@ -1,4 +1,5 @@
 import { ItemLockMode, ItemStack, system, world } from "@minecraft/server";
+import { cleanupActiveEssenceAbilities } from "./index";
 
 const CONFIG = {
     essenceTypes: ["agility", "earth", "healer", "revenge", "strength", "treasure"],
@@ -77,7 +78,7 @@ world.beforeEvents.playerInteractWithEntity.subscribe(event => {
     }
 
     activeBoxes.add(entityId);
-    
+
     if (!boxUsageHistory.has(entityId)) {
         boxUsageHistory.set(entityId, new Set());
     }
@@ -102,6 +103,8 @@ world.beforeEvents.playerInteractWithEntity.subscribe(event => {
                     break;
                 }
             }
+
+            cleanupActiveEssenceAbilities(player);
 
             const availableEssences = CONFIG.essenceTypes.filter(type => type !== currentEssence);
             const randomEssence = availableEssences[Math.floor(Math.random() * availableEssences.length)];
@@ -144,7 +147,7 @@ world.beforeEvents.playerInteractWithEntity.subscribe(event => {
 
             system.runTimeout(() => {
                 system.clearRun(particleInterval);
-                
+
                 if (entity.isValid) {
                     entity.playAnimation("animation.pandora_box.close");
                 }
@@ -152,7 +155,7 @@ world.beforeEvents.playerInteractWithEntity.subscribe(event => {
                 const newEssence = new ItemStack(`metro:${randomEssence}_essence`, 1);
                 newEssence.keepOnDeath = true;
                 newEssence.lockMode = ItemLockMode.inventory;
-                
+
                 const loreList = CONFIG.essenceLore[randomEssence];
                 if (loreList) {
                     newEssence.setLore(loreList);
@@ -198,7 +201,7 @@ world.beforeEvents.playerInteractWithEntity.subscribe(event => {
 
                     entity.remove();
                     player.dimension.playSound("liquid.lavapop", player.location);
-                    
+
                     activeBoxes.delete(entityId);
                     boxUsageHistory.delete(entityId);
                 }, 20);
